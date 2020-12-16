@@ -151,6 +151,7 @@ def process_image():
 
   log("Converting to greyscale")
   grey_image_np = cv.cvtColor(input_image_np, cv.COLOR_BGR2GRAY)
+  watershed(input_image_np,grey_image_np)
 
   #log("Running Canny edge detection algorithm with parameters:\n" +
   #    "- min threshold=" + str(edge_min.get()) + "\n" +
@@ -165,10 +166,13 @@ def process_image():
                               L2gradient = (gradient.get()==2))
   edge_detected_image_PIL = Image.fromarray(edge_detected_image_np)
 
+  adaptive_img = cv.adaptiveThreshold(grey_image_np, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, 0, 11, 3)
+
+  (a,b,c,d,e)=sharpen(input_image_np)
   log("Detecting circles")
   circles_removed_image_np = edge_detected_image_np.copy()
     # Make a few different blurred versions of the image, so we can find most of the circles
-  blurs = [grey_image_np, edge_detected_image_np]
+  blurs = [grey_image_np, edge_detected_image_np,adaptive_img,a,b,c,d,e]
   for i in range(maxblur+1):
     b = 2*i + 1
     blurs.append(cv.medianBlur(grey_image_np, b))
@@ -202,6 +206,77 @@ def process_image():
   find_grid()
   draw_images()
   draw_histogram(stone_brightnesses) # this should erase the histogram from any previous board
+
+
+def sharpen(input):
+  # 高斯模糊,降低噪声
+  # img = cv.adaptiveThreshold(img,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,            cv.THRESH_BINARY,11,2)
+  # thresh,img = cv.threshold(img,0, 255,cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
+
+  # cv.imshow(img)
+  gray = cv.cvtColor(input, cv.COLOR_BGR2GRAY)
+
+  img = gray.copy()
+  # img = cv.GaussianBlur(img, (3, 3), 1)
+
+  kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))
+  erode = cv.erode(img, kernel, iterations=1)
+
+
+  dilate=cv.dilate(img,kernel,iterations=1)
+
+  cross_kernel = cv.getStructuringElement(cv.MORPH_CROSS, (3, 3))
+  morphed = cv.morphologyEx(img, cv.MORPH_CLOSE, cross_kernel, iterations=2)
+
+  im_filled = imfill(morphed)
+
+  return (morphed, im_filled,cv.bitwise_xor(gray,erode),cv.bitwise_xor(gray,dilate),cv.bitwise_xor(erode,dilate))
+
+def watershed(img,gray):
+  ret, thresh = cv.threshold(gray,0,255,cv.THRESH_BINARY_INV+cv.THRESH_OTSU)
+  # noise removal
+  kernel = np.ones((3,3),np.uint8)
+  opening = cv.morphologyEx(thresh,cv.MORPH_OPEN,kernel, iterations = 1)
+
+  # sure background area
+  sure_bg = cv.dilate(opening,kernel,iterations=3)
+
+  # Finding sure foreground area
+  dist_transform = cv.distanceTransform(opening,cv.DIST_L2,5)
+  ret, sure_fg = cv.threshold(dist_transform,0.7*dist_transform.max(),255,0)
+
+  # Finding unknown region
+  sure_fg = np.uint8(sure_fg)
+  unknown = cv.subtract(sure_bg,sure_fg)
+  # Marker labelling
+  ret, markers = cv.connectedComponents(sure_fg)
+
+  # Add one to all labels so that sure background is not 0, but 1
+  markers = markers+1
+
+  # Now, mark the region of unknown with zero
+  markers[unknown==255] = 0
+  markers = cv.watershed(img,markers)
+  img[markers == -1] = [255,255,255]
+  return img
+
+def imfill(img):
+   # Threshold.
+# Set values equal to or above 220 to 0.
+# Set values below 220 to 255.
+
+  # Copy the thresholded image.
+  im_floodfill = img.copy()
+
+  # Mask used to flood filling.
+  # Notice the size needs to be 2 pixels than the image.
+  h, w = img.shape[:2]
+  mask = np.zeros((h+2, w+2), np.uint8)
+
+  # Floodfill from point (0, 0)
+  cv.floodFill(im_floodfill, mask, (30,30), (255,255,255), (30, 30, 30), (10, 10, 10) ,cv.FLOODFILL_FIXED_RANGE);
+
+  return im_floodfill
 
 
 def draw_histogram(stone_brightnesses):
@@ -789,14 +864,14 @@ def to_SGF(board):
   black_moves, white_moves = "", ""
   if BoardStates.BLACK in board:
     black_moves += "AB"
-    for i in range(hsize):
-      for j in range(vsize):
+    for i in range(BOARD_SIZE):
+      for j in range(BOARD_SIZE):
         if board[i,j] == BoardStates.BLACK:
           black_moves += "[" + board_letters[i] + board_letters[j] + "]"
   if BoardStates.WHITE in board:
     white_moves += "AW"
-    for i in range(hsize):
-      for j in range(vsize):
+    for i in range(BOARD_SIZE):
+      for j in range(BOARD_SIZE):
         if board[i,j] == BoardStates.WHITE:
           white_moves += "[" + board_letters[i] + board_letters[j] + "]"
   if side_to_move.get() == 1:

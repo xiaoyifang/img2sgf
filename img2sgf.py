@@ -699,7 +699,7 @@ def initialise_parameters():
   valid_grid   = False
   board_ready  = False
   save_button.configure(state=tk.DISABLED)
-  board_alignment = [Alignment.LEFT, Alignment.TOP]
+  board_alignment = [Alignment.LEFT, Alignment.BOTTOM]
   reset_button.configure(state=tk.DISABLED)
   rotate_angle.set(0)
   previous_rotation_angle = 0
@@ -888,9 +888,9 @@ def to_SGF(board):
 def save_SGF():
   global output_file
   if output_file is not None:
-    output_file = filedialog.asksaveasfilename(initialfile = output_file)
+    output_file = filedialog.asksaveasfilename(initialfile = output_file,defaultextension='.sgf', filetypes=[("sgf files", '*.sgf')])
   else:
-    output_file = filedialog.asksaveasfilename()
+    output_file = filedialog.asksaveasfilename(defaultextension='.sgf', filetypes=[("sgf files", '*.sgf')])
   sgf = open(output_file, "w")
   sgf.write(to_SGF(full_board))
   sgf.close()
@@ -1042,8 +1042,8 @@ def edit_board(event):
      if event.num == 1:  # left-click
        if current_state == BoardStates.EMPTY:
          full_board[i,j] = BoardStates.WHITE
-       elif current_state == BoardStates.WHITE:
-         full_board[i,j] = BoardStates.BLACK
+       # elif current_state == BoardStates.WHITE:
+       #   full_board[i,j] = BoardStates.EMPTY
        else:
          full_board[i,j] = BoardStates.EMPTY
      if event.num == 3:  # right-click
@@ -1052,7 +1052,7 @@ def edit_board(event):
        elif current_state == BoardStates.BLACK:
          full_board[i,j] = BoardStates.WHITE
        else:
-         full_board[i,j] = BoardStates.EMPTY
+         full_board[i,j] = BoardStates.BLACK
      reset_button.configure(state=tk.ACTIVE)
 
   else:

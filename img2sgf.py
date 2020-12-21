@@ -971,8 +971,77 @@ def draw_images():
     for x in vcentres:
       processed_canvas.create_line(x*scale, ymin, x*scale, ymax, fill="green", width=2)
 
+def blankBoard(boardBlockSize):
+    boardSize=BOARD_SIZE
+    yellow = [245, 197, 120]
+    black = [0, 0, 0]
+    white = [255, 255, 255]
+    halfBoardBlock = int(round((boardBlockSize / 2.0)))
+    boardSide = boardBlockSize * (boardSize+2)
+    blankBoard = np.zeros((boardSide, boardSide, 3),
+                          dtype="uint8")
+    cv.rectangle(blankBoard, (0, 0), (boardSide, boardSide), yellow, -1)
+    for i in range(boardSize):
+      spot = i * boardBlockSize + halfBoardBlock+boardBlockSize
+      cv.line(blankBoard,
+               (spot, halfBoardBlock+boardBlockSize),
+               (spot, boardSide - halfBoardBlock-boardBlockSize),
+               black,
+               int(boardBlockSize / 20))
+      cv.line(blankBoard,
+               (halfBoardBlock+boardBlockSize, spot),
+               (boardSide - halfBoardBlock-boardBlockSize, spot),
+               black,
+               int(boardBlockSize / 20))
+    if boardSize == 19:
+      spots = [[3, 3], [9, 3], [15, 3],
+               [3, 9], [9, 9], [15, 9],
+               [3, 15], [9, 15], [15, 15]]
+    else:
+      spots = []
+
+    for s in spots:
+      cv.circle(blankBoard,
+                 (s[0] * boardBlockSize + halfBoardBlock,
+                  s[1] * boardBlockSize + halfBoardBlock),
+                 int(boardBlockSize * .15),
+                 black,
+                 -1)
+
+    return blankBoard
+
+
+def drawBoard(board, size=(500, 500)):
+  black = [0, 0, 0]
+  white = [255, 255, 255]
+
+  boardBlockSize = 100
+  halfBoardBlock = int(round(boardBlockSize / 2.0))
+  output = blankBoard(100)
+  (w, h) = board.shape
+  for x in range(w):
+    for y in range(h):
+      if board[x][y] == 1:
+        cv.circle(output,
+                   ((x * boardBlockSize) + halfBoardBlock+boardBlockSize,
+                    (y * boardBlockSize) + halfBoardBlock+boardBlockSize),
+                   int(boardBlockSize / 2),
+                   black,
+                   -1)
+      elif board[x][y] == 2:
+        cv.circle(output,
+                   ((x * boardBlockSize) + halfBoardBlock+boardBlockSize,
+                    (y * boardBlockSize) + halfBoardBlock+boardBlockSize),
+                   int(boardBlockSize / 2),
+                   white,
+                   -1)
+  output = cv.resize(output, size, output, 0, 0, cv.INTER_AREA)
+  return Image.fromarray(np.uint8(output)).convert('RGB')
+  # return Image.fromarray(output)
+
 
 def draw_board():
+  global board_g
   output_canvas.configure(bg="#d9d9d9")
   output_canvas.delete("all")
   if not board_ready:
@@ -995,22 +1064,27 @@ def draw_board():
   r = width/18/2.1 # radius of stones
   coords = [i*width/18 + 30 for i in range(19)]
   cmin, cmax = min(coords), max(coords)
-  for c in coords:
-    output_canvas.create_line(c, cmin, c, cmax)
-    output_canvas.create_line(cmin, c, cmax, c)
-  # Star points
-  for i in [coords[3], coords[9], coords[15]]:
-    for j in [coords[3], coords[9], coords[15]]:
-      output_canvas.create_oval(i-2, j-2, i+2, j+2, fill="black")
-  # Stones
-  for i in range(BOARD_SIZE):
-    for j in range(BOARD_SIZE):
-      x, y = coords[i], coords[j]
-      if full_board[i,j] == BoardStates.WHITE:
-        output_canvas.create_oval(x-r, y-r, x+r, y+r, fill="white")
-      elif full_board[i,j] == BoardStates.BLACK:
-        output_canvas.create_oval(x-r, y-r, x+r, y+r, fill="black")
-        
+  # for c in coords:
+  #   output_canvas.create_line(c, cmin, c, cmax)
+  #   output_canvas.create_line(cmin, c, cmax, c)
+  # # Star points
+  # for i in [coords[3], coords[9], coords[15]]:
+  #   for j in [coords[3], coords[9], coords[15]]:
+  #     output_canvas.create_oval(i-2, j-2, i+2, j+2, fill="black")
+  # # Stones
+  # for i in range(BOARD_SIZE):
+  #   for j in range(BOARD_SIZE):
+  #     x, y = coords[i], coords[j]
+  #     if full_board[i,j] == BoardStates.WHITE:
+  #       output_canvas.create_oval(x-r, y-r, x+r, y+r, fill="white")
+  #     elif full_board[i,j] == BoardStates.BLACK:
+  #       output_canvas.create_oval(x-r, y-r, x+r, y+r, fill="black")
+
+
+  board_img=drawBoard(full_board)
+  board_g, scale = scale_image(board_img, output_canvas)
+  output_canvas.create_image((0, 0), image=board_g, anchor="nw")
+
   # Positioning circles: these should only appear for part board positions
   pos_centres = []
   if hsize < BOARD_SIZE and vsize < BOARD_SIZE:
@@ -1025,7 +1099,6 @@ def draw_board():
   for i, j in pos_centres:
      output_canvas.create_oval(i-2, j-2, i+2, j+2, fill="pink")
      output_canvas.create_oval(i-8, j-8, i+8, j+8)
-
 
 def edit_board(event):
   global board_alignment, full_board

@@ -987,12 +987,12 @@ def blankBoard(boardBlockSize):
                (spot, halfBoardBlock+boardBlockSize),
                (spot, boardSide - halfBoardBlock-boardBlockSize),
                black,
-               int(boardBlockSize / 20))
+               int(boardBlockSize / 40))
       cv.line(blankBoard,
                (halfBoardBlock+boardBlockSize, spot),
                (boardSide - halfBoardBlock-boardBlockSize, spot),
                black,
-               int(boardBlockSize / 20))
+               int(boardBlockSize / 40))
     if boardSize == 19:
       spots = [[3, 3], [9, 3], [15, 3],
                [3, 9], [9, 9], [15, 9],
@@ -1002,8 +1002,8 @@ def blankBoard(boardBlockSize):
 
     for s in spots:
       cv.circle(blankBoard,
-                 (s[0] * boardBlockSize + halfBoardBlock,
-                  s[1] * boardBlockSize + halfBoardBlock),
+                 (s[0] * boardBlockSize + halfBoardBlock+boardBlockSize,
+                  s[1] * boardBlockSize + halfBoardBlock+boardBlockSize),
                  int(boardBlockSize * .15),
                  black,
                  -1)
@@ -1042,9 +1042,10 @@ def drawBoard(board, size=(500, 500)):
 
 def draw_board():
   global board_g
-  output_canvas.configure(bg="#d9d9d9")
   output_canvas.delete("all")
   if not board_ready:
+    output_canvas.configure(bg="#d9d9d9")
+
     if image_loaded:
       output_canvas.create_text((0,0), text="Board not detected!", anchor="nw")
       output_canvas.create_text((0,30), text="Things to try:", anchor="nw")
@@ -1054,7 +1055,7 @@ def draw_board():
       output_canvas.create_text((0,150), text="  -> Increase contrast", anchor="nw")
       output_canvas.create_text((0,180), text="  -> Increase threshold", anchor="nw")
     return
-  output_canvas.configure(bg="#FFC050")
+  # output_canvas.configure(bg="#FFC050")
   w, h = output_canvas.winfo_width(), output_canvas.winfo_height()
   s = min(w,h) # size of board+margin
   if s < 220:  # too small to draw the board

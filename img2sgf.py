@@ -1062,24 +1062,7 @@ def draw_board():
     output_canvas.create_text((0,0), text="Too small!", anchor="nw")
     return
   width = s-60 # width of the actual board
-  r = width/18/2.1 # radius of stones
   coords = [i*width/18 + 30 for i in range(19)]
-  cmin, cmax = min(coords), max(coords)
-  # for c in coords:
-  #   output_canvas.create_line(c, cmin, c, cmax)
-  #   output_canvas.create_line(cmin, c, cmax, c)
-  # # Star points
-  # for i in [coords[3], coords[9], coords[15]]:
-  #   for j in [coords[3], coords[9], coords[15]]:
-  #     output_canvas.create_oval(i-2, j-2, i+2, j+2, fill="black")
-  # # Stones
-  # for i in range(BOARD_SIZE):
-  #   for j in range(BOARD_SIZE):
-  #     x, y = coords[i], coords[j]
-  #     if full_board[i,j] == BoardStates.WHITE:
-  #       output_canvas.create_oval(x-r, y-r, x+r, y+r, fill="white")
-  #     elif full_board[i,j] == BoardStates.BLACK:
-  #       output_canvas.create_oval(x-r, y-r, x+r, y+r, fill="black")
 
 
   board_img=drawBoard(full_board)
@@ -1116,8 +1099,6 @@ def edit_board(event):
      if event.num == 1:  # left-click
        if current_state == BoardStates.EMPTY:
          full_board[i,j] = BoardStates.WHITE
-       # elif current_state == BoardStates.WHITE:
-       #   full_board[i,j] = BoardStates.EMPTY
        else:
          full_board[i,j] = BoardStates.EMPTY
      if event.num == 3:  # right-click

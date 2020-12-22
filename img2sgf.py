@@ -161,9 +161,9 @@ def process_image():
   log("Running Canny edge detection algorithm")
   # no point logging the parameters now I've turned off the UI for changing them
   edge_detected_image_np = cv.Canny(input_image_np,
-                              edge_min.get(), edge_max.get(),
-                              apertureSize = sobel.get(),
-                              L2gradient = (gradient.get()==2))
+                              edge_min_default, edge_max_default,
+                              apertureSize = sobel_default,
+                              L2gradient = (gradient_default==2))
   edge_detected_image_PIL = Image.fromarray(edge_detected_image_np)
 
   adaptive_img = cv.adaptiveThreshold(grey_image_np, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, 0, 11, 3)
@@ -1019,25 +1019,31 @@ def drawBoard(board, size=(500, 500)):
   halfBoardBlock = int(round(boardBlockSize / 2.0))
   output = blankBoard(100)
   (w, h) = board.shape
+  radius = int(boardBlockSize / 2.1)
   for x in range(w):
     for y in range(h):
       if board[x][y] == 1:
         cv.circle(output,
-                   ((x * boardBlockSize) + halfBoardBlock+boardBlockSize,
-                    (y * boardBlockSize) + halfBoardBlock+boardBlockSize),
-                   int(boardBlockSize / 2),
-                   black,
-                   -1)
+                  ((x * boardBlockSize) + halfBoardBlock+boardBlockSize,
+                   (y * boardBlockSize) + halfBoardBlock+boardBlockSize),
+                  radius,
+                  black,
+                  -1)
       elif board[x][y] == 2:
         cv.circle(output,
-                   ((x * boardBlockSize) + halfBoardBlock+boardBlockSize,
-                    (y * boardBlockSize) + halfBoardBlock+boardBlockSize),
-                   int(boardBlockSize / 2),
-                   white,
-                   -1)
+                  ((x * boardBlockSize) + halfBoardBlock+boardBlockSize,
+                   (y * boardBlockSize) + halfBoardBlock+boardBlockSize),
+                  radius,
+                  white,
+                  -1)
+        cv.circle(output,
+                  ((x * boardBlockSize) + halfBoardBlock + boardBlockSize,
+                   (y * boardBlockSize) + halfBoardBlock + boardBlockSize),
+                  radius,
+                  black,
+                  3)
   output = cv.resize(output, size, output, 0, 0, cv.INTER_AREA)
   return Image.fromarray(np.uint8(output)).convert('RGB')
-  # return Image.fromarray(output)
 
 
 def draw_board():
@@ -1074,12 +1080,7 @@ def draw_board():
   if hsize < BOARD_SIZE and vsize < BOARD_SIZE:
     # corner position
     pos_centres = [(15,15), (15,width+45), (width+45,15), (width+45,width+45)]
-  elif hsize < BOARD_SIZE:
-    # left or right size position
-    pos_centres = [(15, coords[9]), (width+45, coords[9])]
-  elif vsize < BOARD_SIZE:
-    # top or bottom position
-    pos_centres = [(coords[9], 15), (coords[9], width+45)]
+
   for i, j in pos_centres:
      output_canvas.create_oval(i-2, j-2, i+2, j+2, fill="pink")
      output_canvas.create_oval(i-8, j-8, i+8, j+8)
@@ -1268,49 +1269,6 @@ brightness = tk.Scale(settings1, from_=0, to=100, orient=tk.HORIZONTAL)
 brightness.set(50)
 brightness.grid(row=3, padx=15, sticky="nsew")
 brightness.bind("<ButtonRelease-1>", lambda x: process_image())
-
-# Edge detection parameters hidden: they don't seem to help
-edge_label = tk.Label(settings1, text="Canny edge detection parameters")
-#edge_label.grid(row=5, pady=15)
-edge_min_label = tk.Label(settings1, text="min threshold")
-#edge_min_label.grid(row=6)
-edge_min = tk.Scale(settings1, from_=0, to=255, orient=tk.HORIZONTAL)
-edge_min.set(edge_min_default)
-#edge_min.grid(row=7)
-#edge_min.bind("<ButtonRelease-1>", lambda x: process_image())
-edge_max_label = tk.Label(settings1, text="max threshold")
-#edge_max_label.grid(row=8, pady=(20,0))
-edge_max = tk.Scale(settings1, from_=0, to=255, orient=tk.HORIZONTAL)
-edge_max.set(edge_max_default)
-#edge_max.grid(row=9)
-#edge_max.bind("<ButtonRelease-1>", lambda x: process_image())
-sobel_label = tk.Label(settings1, text="Sobel aperture")
-#sobel_label.grid(row=10, pady=(20,0))
-def odd_only(n):
-  # Restrict Sobel value scale to odd numbers
-  # Thanks to https://stackoverflow.com/questions/20710514/selecting-odd-values-using-tkinter-scale for the hack
-  n = int(n)  # if we don't do this, then n==4 is never true!
-  if n==4:
-    n=3
-  if n==6:
-    n=7
-  sobel.set(n)
-sobel = tk.Scale(settings1, from_=3, to=7, orient=tk.HORIZONTAL,
-           command=odd_only, length=100)
-sobel.set(sobel_default)
-#sobel.grid(row=11)
-#sobel.bind("<ButtonRelease-1>", lambda x: process_image())
-gradient_label = tk.Label(settings1, text="gradient")
-gradient = tk.IntVar() # choice of gradient for Canny edge detection
-gradient.set(gradient_default)
-#gradient_label.grid(row=12, pady=(20,0))
-gradientL1 = tk.Radiobutton(settings1, text="L1 norm", variable=gradient, value=1,
-                            command=process_image)
-#gradientL1.grid(row=13)
-gradientL2 = tk.Radiobutton(settings1, text="L2 norm", variable=gradient, value=2,
-                            command=process_image)
-#gradientL2.grid(row=14)
-
 
 threshold_label = tk.Label(settings2,
                            text="line detection threshold\nfor Hough transform")

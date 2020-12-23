@@ -972,43 +972,45 @@ def draw_images():
       processed_canvas.create_line(x*scale, ymin, x*scale, ymax, fill="green", width=2)
 
 def blankBoard(boardBlockSize):
-    boardSize=BOARD_SIZE
-    yellow = [245, 197, 120]
-    black = [0, 0, 0]
-    white = [255, 255, 255]
-    halfBoardBlock = int(round((boardBlockSize / 2.0)))
-    boardSide = boardBlockSize * (boardSize+2)
-    blankBoard = np.zeros((boardSide, boardSide, 3),
-                          dtype="uint8")
-    cv.rectangle(blankBoard, (0, 0), (boardSide, boardSide), yellow, -1)
-    for i in range(boardSize):
-      spot = i * boardBlockSize + halfBoardBlock+boardBlockSize
-      cv.line(blankBoard,
-               (spot, halfBoardBlock+boardBlockSize),
-               (spot, boardSide - halfBoardBlock-boardBlockSize),
-               black,
-               int(boardBlockSize / 40))
-      cv.line(blankBoard,
-               (halfBoardBlock+boardBlockSize, spot),
-               (boardSide - halfBoardBlock-boardBlockSize, spot),
-               black,
-               int(boardBlockSize / 40))
-    if boardSize == 19:
-      spots = [[3, 3], [9, 3], [15, 3],
-               [3, 9], [9, 9], [15, 9],
-               [3, 15], [9, 15], [15, 15]]
-    else:
-      spots = []
+  boardSize=BOARD_SIZE
+  yellow = [245, 197, 120]
+  black = [0, 0, 0]
+  white = [255, 255, 255]
+  halfBoardBlock = int(round((boardBlockSize / 2.0)))
+  boardSide = boardBlockSize * (boardSize+2)
+  blankBoard = np.zeros((boardSide, boardSide, 3),
+                        dtype="uint8")
+  thickness = int(boardBlockSize / 40)
+  cv.rectangle(blankBoard, (0, 0), (boardSide, boardSide), yellow, -1)
+  cv.rectangle(blankBoard, (boardBlockSize+halfBoardBlock, boardBlockSize+halfBoardBlock), (halfBoardBlock+boardBlockSize*19, halfBoardBlock+boardBlockSize*19), black, 4*thickness)
+  for i in range(boardSize):
+    spot = i * boardBlockSize + halfBoardBlock+boardBlockSize
+    cv.line(blankBoard,
+            (spot, halfBoardBlock+boardBlockSize),
+            (spot, boardSide - halfBoardBlock-boardBlockSize),
+            black,
+            thickness)
+    cv.line(blankBoard,
+            (halfBoardBlock+boardBlockSize, spot),
+            (boardSide - halfBoardBlock-boardBlockSize, spot),
+            black,
+            thickness)
+  if boardSize == 19:
+    spots = [[3, 3], [9, 3], [15, 3],
+             [3, 9], [9, 9], [15, 9],
+             [3, 15], [9, 15], [15, 15]]
+  else:
+    spots = []
 
-    for s in spots:
-      cv.circle(blankBoard,
-                 (s[0] * boardBlockSize + halfBoardBlock+boardBlockSize,
-                  s[1] * boardBlockSize + halfBoardBlock+boardBlockSize),
-                 int(boardBlockSize * .15),
-                 black,
-                 -1)
+  for s in spots:
+    cv.circle(blankBoard,
+              (s[0] * boardBlockSize + halfBoardBlock+boardBlockSize,
+               s[1] * boardBlockSize + halfBoardBlock+boardBlockSize),
+              int(boardBlockSize * .15),
+              black,
+              -1)
 
-    return blankBoard
+  return blankBoard
 
 
 def drawBoard(board, size=(500, 500)):
@@ -1019,7 +1021,7 @@ def drawBoard(board, size=(500, 500)):
   halfBoardBlock = int(round(boardBlockSize / 2.0))
   output = blankBoard(100)
   (w, h) = board.shape
-  radius = int(boardBlockSize / 2.1)
+  radius = int(boardBlockSize / 2*0.9)
   for x in range(w):
     for y in range(h):
       if board[x][y] == 1:
@@ -1061,14 +1063,10 @@ def draw_board():
       output_canvas.create_text((0,150), text="  -> Increase contrast", anchor="nw")
       output_canvas.create_text((0,180), text="  -> Increase threshold", anchor="nw")
     return
-  # output_canvas.configure(bg="#FFC050")
+  output_canvas.configure(bg="#FFC050")
   w, h = output_canvas.winfo_width(), output_canvas.winfo_height()
   s = min(w,h) # size of board+margin
-  if s < 220:  # too small to draw the board
-    output_canvas.create_text((0,0), text="Too small!", anchor="nw")
-    return
   width = s-60 # width of the actual board
-  coords = [i*width/18 + 30 for i in range(19)]
 
 
   board_img=drawBoard(full_board)
@@ -1278,7 +1276,7 @@ threshold.set(threshold_default)
 threshold.grid(row=1, pady=(7,71), padx=15, sticky="nsew")
 threshold.bind("<ButtonRelease-1>", lambda x: process_image())
 
-fig1 = Figure(figsize=(3,2), dpi=round(s_width/3))
+fig1 = Figure(figsize=(3,3), dpi=round(s_width/3))
 threshold_subfigure = fig1.add_subplot(1, 1, 1)
 threshold_subfigure.axis('off')
 threshold_plot = FigureCanvasTkAgg(fig1, master=settings2)
@@ -1289,7 +1287,7 @@ threshold_plot.get_tk_widget().grid(row=2, padx=15, sticky="nsew")
 # on settings1 not settings2
 black_thresh_label = tk.Label(settings1, text="black stone detection")
 black_thresh_label.grid(row=4, pady=(30,20), padx=15, sticky="nsew")
-fig2 = Figure(figsize=(3,2), dpi=round(s_width/3))
+fig2 = Figure(figsize=(3,3), dpi=round(s_width/3))
 black_thresh_subfigure = fig2.add_subplot(1, 1, 1)
 threshold_line = None # later, this will be set to the marker line on the histogram
 black_thresh_hist = FigureCanvasTkAgg(fig2, master=settings1)

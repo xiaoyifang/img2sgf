@@ -571,7 +571,7 @@ def align_board(b, a):
 
 def identify_board():
   global detected_board, full_board, stone_brightnesses, \
-         num_black_stones, num_white_stones
+    num_black_stones, num_white_stones
 
   log("Guessing stone colours based on a threshold of " + str(black_stone_threshold))
   detected_board = np.zeros((hsize, vsize))
@@ -596,17 +596,11 @@ def identify_board():
   if num_white_stones != 1:
     white_text += "s"
   log("Detected " + black_text + " and " + white_text + " on a "
-                  + str(hsize) + "x" + str(vsize) + " board.")
+      + str(hsize) + "x" + str(vsize) + " board.")
 
-  # Guess whose move it is based on stone count:
-  # this will sometimes be wrong because of handicaps, captures, part board positions
-  # but the user can change it with a single click
-  if num_black_stones <= num_white_stones:
-    log("Guessing black to play")
-    side_to_move.set(BLACK)
-  else:
-    log("Guessing white to play")
-    side_to_move.set(WHITE)
+  # no need to guess
+  side_to_move.set(BLACK)
+
   draw_histogram(stone_brightnesses)
 
   for i in range(hsize):
@@ -614,7 +608,7 @@ def identify_board():
       if detected_board[i,j] == BoardStates.STONE:
         x = average_intensity(i, j)
         detected_board[i,j] = BoardStates.BLACK if x <= black_stone_threshold \
-                                       else BoardStates.WHITE
+          else BoardStates.WHITE
   full_board = align_board(detected_board.copy(), board_alignment)
 
 

@@ -85,3 +85,16 @@ Fewer than 19 clusters can happen in two different ways.  If not enough lines ha
 ## Identifying black and white stones
 
 Once the grid has been detected, we can put back the circles that were removed earlier.  Any grid point with a circle around it should be a stone.  To tell black stones from white, we look at the average pixel intensities surrounding that grid point.  In in ideal world, we'd have 0=black, 255=white and nothing in between.  But imperfections in the image, or stone numbers or markers on the stones, can smudge things a bit.  So there's a threshold, defaulting to 128, and anything below the threshold is called black.  The settings window shows you a histogram of all the intensities, and you can slide the threshold left (down) or right if needed.
+
+##dependency
+Using Tk version 8.6
+
+Using OpenCV version 4.4.0
+
+Using numpy version 1.18.0
+
+Using scikit-learn version 0.23.2
+
+Using matplotlib version 3.3.3
+
+Using Pillow image library version 8.0.1

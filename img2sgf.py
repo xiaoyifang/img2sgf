@@ -26,8 +26,8 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 from enum import Enum, IntEnum
 from bisect import bisect_left
-import matplotlib # need to import top level package to get version number for log
-import sklearn # ditto
+# import matplotlib # need to import top level package to get version number for log
+# import sklearn # ditto
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from PIL import Image, ImageTk, ImageEnhance #, ImageGrab -- Windows/Mac only!
@@ -125,8 +125,6 @@ def process_image():
   # global so that other functions can move and redraw the line
   global found_grid, valid_grid, board_ready
   # keep other functions informed of processing status
-
-  reset_button.configure(state=tk.ACTIVE)
 
   if not image_loaded:
     return
@@ -851,7 +849,7 @@ def toggle_log(status = None):
 def reset_board():
   global full_board
   full_board = align_board(detected_board, board_alignment)
-  reset_button.configure(state=tk.DISABLED)
+  # reset_button.configure(state=tk.DISABLED)
   rotate_angle.set(0)
   process_image()
   draw_board()
@@ -903,9 +901,9 @@ def blankBoard(boardBlockSize):
   boardSide = boardBlockSize * (boardSize+2)
   blankBoard = np.zeros((boardSide, boardSide, 3),
                         dtype="uint8")
-  thickness = int(boardBlockSize / 40)
+  thickness = 2
   cv.rectangle(blankBoard, (0, 0), (boardSide, boardSide), yellow, -1)
-  cv.rectangle(blankBoard, (boardBlockSize+halfBoardBlock, boardBlockSize+halfBoardBlock), (halfBoardBlock+boardBlockSize*19, halfBoardBlock+boardBlockSize*19), black, 4*thickness)
+  cv.rectangle(blankBoard, (boardBlockSize+halfBoardBlock, boardBlockSize+halfBoardBlock), (halfBoardBlock+boardBlockSize*19, halfBoardBlock+boardBlockSize*19), black, 3*thickness)
   for i in range(boardSize):
     spot = i * boardBlockSize + halfBoardBlock+boardBlockSize
     cv.line(blankBoard,
@@ -929,7 +927,7 @@ def blankBoard(boardBlockSize):
     cv.circle(blankBoard,
               (s[0] * boardBlockSize + halfBoardBlock+boardBlockSize,
                s[1] * boardBlockSize + halfBoardBlock+boardBlockSize),
-              int(boardBlockSize * .15),
+              10*thickness,
               black,
               -1)
 
@@ -1021,15 +1019,16 @@ def edit_board(event):
      if event.num == 1:  # left-click
        if current_state == BoardStates.EMPTY:
          full_board[i,j] = BoardStates.WHITE
-       else:
-         full_board[i,j] = BoardStates.EMPTY
-     if event.num == 3:  # right-click
-       if current_state == BoardStates.EMPTY:
-         full_board[i,j] = BoardStates.BLACK
        elif current_state == BoardStates.BLACK:
          full_board[i,j] = BoardStates.WHITE
        else:
          full_board[i,j] = BoardStates.BLACK
+
+     if event.num == 3:  # right-click
+       if current_state == BoardStates.EMPTY:
+         full_board[i,j] = BoardStates.BLACK
+       else:
+         full_board[i, j] = BoardStates.EMPTY
      reset_button.configure(state=tk.ACTIVE)
 
   else:
@@ -1094,6 +1093,7 @@ input_canvas.bind('<Button-1>', init_selection_rect)
 input_canvas.bind('<B1-Motion>', update_selection_rect)
 input_canvas.bind('<ButtonRelease-1>', lambda x : select_region())
 input_canvas.bind('<Double-Button-1>', zoom_out)
+input_canvas.bind('<ButtonRelease-3>', zoom_out)
 input_canvas.bind("<Configure>", lambda x : draw_images()) # also draw the processed image
 output_canvas.bind("<Configure>", lambda x: draw_board())
 output_canvas.bind("<ButtonRelease-1>", edit_board)
@@ -1137,7 +1137,7 @@ save_button = tk.Button(output_frame, text="save",
                         command = save_SGF, state = tk.DISABLED)
 save_button.grid(row=1, column=0)
 reset_button = tk.Button(output_frame, text="reset",
-                         command = reset_board, state = tk.DISABLED)
+                         command = reset_board)
 reset_button.grid(row=1, column=1)
 output_instructions = tk.Label(output_frame,
              text =
@@ -1254,8 +1254,8 @@ try: # in a try block in case any other package updates remove the .__version__ 
   log("Using Tk version " + str(tk.TkVersion))
   log("Using OpenCV version " + cv.__version__)
   log("Using numpy version " + np.__version__)
-  log("Using scikit-learn version " + sklearn.__version__)
-  log("Using matplotlib version " + matplotlib.__version__)
+  # log("Using scikit-learn version " + sklearn.__version__)
+  # log("Using matplotlib version " + matplotlib.__version__)
   log("Using Pillow image library version " + Image.__version__)
   if not using_PIL_ImageGrab:
     log("Using pyscreenshot version " + ImageGrab.__version__)

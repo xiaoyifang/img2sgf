@@ -1019,16 +1019,11 @@ def edit_board(event):
      if event.num == 1:  # left-click
        if current_state == BoardStates.EMPTY:
          full_board[i,j] = BoardStates.WHITE
-       elif current_state == BoardStates.WHITE:
-         full_board[i,j] = BoardStates.BLACK
        else:
          full_board[i,j] = BoardStates.EMPTY
 
      if event.num == 3:  # right-click
-       if current_state == BoardStates.EMPTY:
          full_board[i,j] = BoardStates.BLACK
-       else:
-         full_board[i, j] = BoardStates.EMPTY
      reset_button.configure(state=tk.ACTIVE)
 
   else:

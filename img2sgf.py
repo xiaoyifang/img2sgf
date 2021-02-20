@@ -147,7 +147,14 @@ def process_image():
   scaled_brightness = 450/(200-brightness.get())-2
   # convert range 0-100 into range 0.25-2.5, with 50->1.0
   region_PIL = ImageEnhance.Brightness(region_PIL).enhance(scaled_brightness)
-  input_image_np = np.array(region_PIL)
+
+  cp=region_PIL.copy()
+
+  x, y = cp.size
+  if max(x, y) > 400:
+    cp.thumbnail((400, 400))
+
+  input_image_np = np.array(cp)
 
   log("Converting to greyscale")
   grey_image_np = cv.cvtColor(input_image_np, cv.COLOR_BGR2GRAY)
@@ -770,7 +777,6 @@ def screen_capture():
   log("Image size " + str(input_image_PIL.size[0]) + "x" +
                       str(input_image_PIL.size[1]))
   initialise_parameters()
-
 
 def to_SGF(board):
   # Return an SGF representation of the board state

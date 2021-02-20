@@ -1,2 +1,2 @@
-CALL D:\ProgramData\Miniconda3\condabin\conda.bat activate conda-3.6-img2sgf
+CALL D:\ProgramData\Anaconda3\condabin\conda.bat activate img2sgf
 python img2sgf.py
